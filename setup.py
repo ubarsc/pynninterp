@@ -1,9 +1,11 @@
 from distutils.core import setup, Extension
+import numpy
 
-pynninterp = Extension('pynninterp',
+pynninterp = Extension('PyNNInterp',
                 define_macros = [('MAJOR_VERSION', '1'),
                                  ('MINOR_VERSION', '0')],
-                sources = ['src/delaunay.c', 'src/hash.c', 'src/istack.c', 'src/lpi.c', 'src/minell.c', 'src/nnai.c', 'src/nncommon-vulnerable.c', 'src/nncommon.c', 'src/nnpi.c', 'src/preader.c', 'src/triangle.c'])
+                sources = ['src/performNNInterp.cpp', 'src/delaunay.c', 'src/hash.c', 'src/istack.c', 'src/lpi.c', 'src/minell.c', 'src/nnai.c', 'src/nncommon-vulnerable.c', 'src/nncommon.c', 'src/nnpi.c', 'src/preader.c', 'src/triangle.c'],
+                include_dirs=[numpy.get_include()])
 
 setup (name = 'PyNNInterp',
        version = '1.0',

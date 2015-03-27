@@ -55,11 +55,21 @@ static struct PyNNInterpState _state;
 #endif
 
 
-int notDoubleVectorSingle(PyArrayObject *vec)
+int notDoubleVector1D(PyArrayObject *vec)
 {
     if (vec->descr->type_num != NPY_DOUBLE || vec->nd != 1)
     {
-        PyErr_SetString(PyExc_ValueError, "In notDoubleVectorSingle: array must be of type Float and 1 dimensional (n).");
+        PyErr_SetString(PyExc_ValueError, "In notDoubleVector1D: array must be of type Float and 1 dimensional (n).");
+        return 1;
+    }
+    return 0;
+}
+
+int notDoubleVector2D(PyArrayObject *vec)
+{
+    if (vec->descr->type_num != NPY_DOUBLE || vec->nd != 2)
+    {
+        PyErr_SetString(PyExc_ValueError, "In notDoubleVector2D: array must be of type Float and 2 dimensional (n).");
         return 1;
     }
     return 0;
@@ -78,34 +88,30 @@ static PyObject *PyNNInterp_interpNNGrid(PyObject *self, PyObject *args, PyObjec
     static char *kwlist[] = {"x", "y", "values", "xGrid", "yGrid", NULL};
     std::cout << "Created keywords list.\n";
     
-    //if(!PyArg_ParseTupleAndKeywords(args, keywds, "O!O!O!O!O!:interpNNGrid", kwlist, &PyArray_Type, &inX, &PyArray_Type, &inY, &PyArray_Type, &inValues, &PyArray_Type, &xGrid, &PyArray_Type, &yGrid))
     if(!PyArg_ParseTupleAndKeywords(args, keywds, "OOOOO:interpNNGrid", kwlist, &inX, &inY, &inValues, &xGrid, &yGrid))
     {
         return NULL;
     }
     
-    if(inX == NULL || notDoubleVectorSingle(inX))
+    if(inX == NULL || notDoubleVector1D(inX))
     {
-        PyErr_SetString(GETSTATE(self)->error, "inX must be type double (numpy.float64)");
+        PyErr_SetString(GETSTATE(self)->error, "inX must be type double (numpy.float64) and 1D");
         return NULL;
     }
-    double *inXVals = (double *) inX->data;
     size_t nInX = inX->dimensions[0];
     
-    if(inY == NULL || notDoubleVectorSingle(inY))
+    if(inY == NULL || notDoubleVector1D(inY))
     {
-        PyErr_SetString(GETSTATE(self)->error, "inY must be type double (numpy.float64)");
+        PyErr_SetString(GETSTATE(self)->error, "inY must be type double (numpy.float64) and 1D");
         return NULL;
     }
-    double *inYVals = (double *) inY->data;
     size_t nInY = inY->dimensions[0];
     
-    if(inValues == NULL || notDoubleVectorSingle(inValues))
+    if(inValues == NULL || notDoubleVector1D(inValues))
     {
-        PyErr_SetString(GETSTATE(self)->error, "inValues must be type double (numpy.float64)");
+        PyErr_SetString(GETSTATE(self)->error, "inValues must be type double (numpy.float64) and 1D");
         return NULL;
     }
-    double *inVals = (double *) inValues->data;
     size_t nInVals = inValues->dimensions[0];
     
     if( (nInX != nInY) | (nInX != nInVals) )
@@ -114,10 +120,46 @@ static PyObject *PyNNInterp_interpNNGrid(PyObject *self, PyObject *args, PyObjec
         return NULL;
     }
     
+    if(xGrid == NULL || notDoubleVector2D(xGrid))
+    {
+        PyErr_SetString(GETSTATE(self)->error, "xGrid must be type double (numpy.float64) and 2D");
+        return NULL;
+    }
+    size_t nXGridRows = xGrid->dimensions[0];
+    size_t nXGridCols = xGrid->dimensions[1];
+    
+    if(yGrid == NULL || notDoubleVector2D(yGrid))
+    {
+        PyErr_SetString(GETSTATE(self)->error, "yGrid must be type double (numpy.float64) and 2D");
+        return NULL;
+    }
+    size_t nYGridRows = yGrid->dimensions[0];
+    size_t nYGridCols = yGrid->dimensions[1];
+    
+    std::cout << "X [" << nXGridRows << ", " << nXGridCols << "]" << std::endl;
+    std::cout << "Y [" << nYGridRows << ", " << nYGridCols << "]" << std::endl;
+    
+    if( (nXGridRows != nYGridRows) | (nXGridCols != nYGridCols) )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "xGrid and yGrid must be the same size.");
+        return NULL;
+    }
+    
+    double *inXVals = (double *) inX->data;
+    double *inYVals = (double *) inY->data;
+    double *inVals = (double *) inValues->data;
+    double *xGridVals = (double*) xGrid->data;
+    double *yGridVals = (double*) yGrid->data;
+    
     for(int i = 0; i < nInX; ++i)
     {
         std::cout << i << " = [" << inXVals[i] << ", " << inYVals[i] << ", " <<  inVals[i] << "]" << std::endl;
     }
+    
+    
+    
+    
+    
     
     
 

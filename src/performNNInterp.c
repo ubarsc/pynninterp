@@ -100,7 +100,7 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         double varX = 0;
         double varY = 0;
         
-        for(size_t i = 0; i < nVals; ++i)
+        for(npy_intp i = 0; i < nVals; ++i)
         {
             meanX += *((double*)PyArray_GETPTR1(pXVals, i));
             meanY += *((double*)PyArray_GETPTR1(pYVals, i));
@@ -109,7 +109,7 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         meanX = meanX / nVals;
         meanY = meanY / nVals;
         
-        for(size_t i = 0; i < nVals; ++i)
+        for(npy_intp i = 0; i < nVals; ++i)
         {
             varX += *((double*)PyArray_GETPTR1(pXVals, i)) - meanX;
             varY += *((double*)PyArray_GETPTR1(pYVals, i)) - meanY;
@@ -228,7 +228,7 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
         double varX = 0;
         double varY = 0;
         
-        for(size_t i = 0; i < nVals; ++i)
+        for(npy_intp i = 0; i < nVals; ++i)
         {
             meanX += *((double*)PyArray_GETPTR1(pXVals, i));
             meanY += *((double*)PyArray_GETPTR1(pYVals, i));
@@ -237,7 +237,7 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
         meanX = meanX / nVals;
         meanY = meanY / nVals;
         
-        for(size_t i = 0; i < nVals; ++i)
+        for(npy_intp i = 0; i < nVals; ++i)
         {
             varX += *((double*)PyArray_GETPTR1(pXVals, i)) - meanX;
             varY += *((double*)PyArray_GETPTR1(pYVals, i)) - meanY;

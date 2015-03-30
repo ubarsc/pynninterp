@@ -91,6 +91,8 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         return NULL;
     }
     
+    npy_intp i = 0;
+    npy_intp j = 0;
     if( nVals < 100 )
     {
         // check that these small number of points aren't all within a line
@@ -100,7 +102,7 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         double varX = 0;
         double varY = 0;
         
-        for(npy_intp i = 0; i < nVals; ++i)
+        for(i = 0; i < nVals; ++i)
         {
             meanX += *((double*)PyArray_GETPTR1(pXVals, i));
             meanY += *((double*)PyArray_GETPTR1(pYVals, i));
@@ -109,7 +111,7 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         meanX = meanX / nVals;
         meanY = meanY / nVals;
         
-        for(npy_intp i = 0; i < nVals; ++i)
+        for(i = 0; i < nVals; ++i)
         {
             varX += *((double*)PyArray_GETPTR1(pXVals, i)) - meanX;
             varY += *((double*)PyArray_GETPTR1(pYVals, i)) - meanY;
@@ -127,7 +129,7 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
     
     // BUILD POINT ARRAYS
     point *inPts = malloc(nVals * sizeof(point));
-    for(npy_intp i = 0; i < nVals; ++i)
+    for(i = 0; i < nVals; ++i)
     {
         inPts[i].x = *((double*)PyArray_GETPTR1(pXVals, i));
         inPts[i].y = *((double*)PyArray_GETPTR1(pYVals, i));
@@ -137,9 +139,9 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
     npy_intp nPtsOutGrid = nRows * nCols;
     npy_intp idx = 0;
     point *gPts = malloc(nPtsOutGrid * sizeof(point));
-    for(npy_intp i  = 0; i < nRows; ++i)
+    for(i = 0; i < nRows; ++i)
     {
-        for(npy_intp j = 0; j < nCols; ++j)
+        for(j = 0; j < nCols; ++j)
         {
             gPts[idx].x = *((double*)PyArray_GETPTR2(pXGrid, i, j));
             gPts[idx].y = *((double*)PyArray_GETPTR2(pYGrid, i, j));
@@ -156,9 +158,9 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
     
     // POPULATE GRID
     idx = 0;
-    for(npy_intp i  = 0; i < nRows; ++i)
+    for(i  = 0; i < nRows; ++i)
     {
-        for(npy_intp j = 0; j < nCols; ++j)
+        for(j = 0; j < nCols; ++j)
         {
             *((double*)PyArray_GETPTR2(pOutArray, i, j)) = gPts[idx++].z;
         }
@@ -219,6 +221,8 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
         return NULL;
     }
     
+    npy_intp i = 0;
+    npy_intp j = 0;
     if( nVals < 100 )
     {
         // check that these small number of points aren't all within a line
@@ -228,7 +232,8 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
         double varX = 0;
         double varY = 0;
         
-        for(npy_intp i = 0; i < nVals; ++i)
+        
+        for(i = 0; i < nVals; ++i)
         {
             meanX += *((double*)PyArray_GETPTR1(pXVals, i));
             meanY += *((double*)PyArray_GETPTR1(pYVals, i));
@@ -237,7 +242,7 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
         meanX = meanX / nVals;
         meanY = meanY / nVals;
         
-        for(npy_intp i = 0; i < nVals; ++i)
+        for(i = 0; i < nVals; ++i)
         {
             varX += *((double*)PyArray_GETPTR1(pXVals, i)) - meanX;
             varY += *((double*)PyArray_GETPTR1(pYVals, i)) - meanY;
@@ -255,7 +260,7 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     
     // BUILD POINT ARRAYS
     point *inPts = malloc(nVals * sizeof(point));
-    for(npy_intp i = 0; i < nVals; ++i)
+    for(i = 0; i < nVals; ++i)
     {
         inPts[i].x = *((double*)PyArray_GETPTR1(pXVals, i));
         inPts[i].y = *((double*)PyArray_GETPTR1(pYVals, i));
@@ -265,9 +270,9 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     npy_intp nPtsOutGrid = nRows * nCols;
     npy_intp idx = 0;
     point *gPts = malloc(nPtsOutGrid * sizeof(point));
-    for(npy_intp i  = 0; i < nRows; ++i)
+    for(i  = 0; i < nRows; ++i)
     {
-        for(npy_intp j = 0; j < nCols; ++j)
+        for(j = 0; j < nCols; ++j)
         {
             gPts[idx].x = *((double*)PyArray_GETPTR2(pXGrid, i, j));
             gPts[idx].y = *((double*)PyArray_GETPTR2(pYGrid, i, j));
@@ -283,9 +288,9 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     
     // POPULATE GRID
     idx = 0;
-    for(npy_intp i  = 0; i < nRows; ++i)
+    for(i  = 0; i < nRows; ++i)
     {
-        for(npy_intp j = 0; j < nCols; ++j)
+        for(j = 0; j < nCols; ++j)
         {
             *((double*)PyArray_GETPTR2(pOutArray, i, j)) = gPts[idx++].z;
         }

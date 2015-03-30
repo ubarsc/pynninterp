@@ -73,6 +73,7 @@
 #include "delaunay.h"
 #include "nn.h"
 #include "nn_internal.h"
+#include "config.h"
 
 struct nnpi {
     delaunay* d;

@@ -47,6 +47,9 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
     //std::cout.precision(12);
     PyObject *pXVals, *pYVals, *pZVals, *pXGrid, *pYGrid;
     PyObject *pOutArray;
+    npy_intp nRows, nCols, nVals, i, j, nPtsOutGrid, idx;
+    point *inPts, *gPts;
+    double minWeight, meanX, meanY, varX, varY;
     
     if( !PyArg_ParseTuple(args, "OOOOO:NaturalNeighbour", &pXVals, &pYVals, &pZVals, &pXGrid, &pYGrid))
         return NULL;
@@ -72,10 +75,10 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
     
     // TODO: check types ok
     
-    npy_intp nRows = PyArray_DIM(pXGrid, 0);
-    npy_intp nCols = PyArray_DIM(pXGrid, 1);
+    nRows = PyArray_DIM(pXGrid, 0);
+    nCols = PyArray_DIM(pXGrid, 1);
     
-    npy_intp nVals = PyArray_DIM(pXVals, 0);
+    nVals = PyArray_DIM(pXVals, 0);
     
     // Create output
     pOutArray = PyArray_EMPTY(2, PyArray_DIMS(pXGrid), NPY_DOUBLE, 0);
@@ -91,16 +94,16 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         return NULL;
     }
     
-    npy_intp i = 0;
-    npy_intp j = 0;
+    i = 0;
+    j = 0;
     if( nVals < 100 )
     {
         // check that these small number of points aren't all within a line
-        double meanX = 0;
-        double meanY = 0;
+        meanX = 0;
+        meanY = 0;
         
-        double varX = 0;
-        double varY = 0;
+        varX = 0;
+        varY = 0;
         
         for(i = 0; i < nVals; ++i)
         {
@@ -128,7 +131,7 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
     }
     
     // BUILD POINT ARRAYS
-    point *inPts = malloc(nVals * sizeof(point));
+    inPts = malloc(nVals * sizeof(point));
     for(i = 0; i < nVals; ++i)
     {
         inPts[i].x = *((double*)PyArray_GETPTR1(pXVals, i));
@@ -136,9 +139,9 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         inPts[i].z = *((double*)PyArray_GETPTR1(pZVals, i));
     }
     
-    npy_intp nPtsOutGrid = nRows * nCols;
-    npy_intp idx = 0;
-    point *gPts = malloc(nPtsOutGrid * sizeof(point));
+    nPtsOutGrid = nRows * nCols;
+    idx = 0;
+    gPts = malloc(nPtsOutGrid * sizeof(point));
     for(i = 0; i < nRows; ++i)
     {
         for(j = 0; j < nCols; ++j)
@@ -150,7 +153,7 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         }
     }
     
-    double minWeight = 0.0;
+    minWeight = 0.0;
     nnpi_interpolate_points(nVals, inPts, minWeight, nPtsOutGrid, gPts);
     
     free(inPts);
@@ -177,6 +180,9 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     //std::cout.precision(12);
     PyObject *pXVals, *pYVals, *pZVals, *pXGrid, *pYGrid;
     PyObject *pOutArray;
+    npy_intp nRows, nCols, nVals, i, j, nPtsOutGrid, idx;
+    point *inPts, *gPts;
+    double minWeight, meanX, meanY, varX, varY;
     
     if( !PyArg_ParseTuple(args, "OOOOO:Linear", &pXVals, &pYVals, &pZVals, &pXGrid, &pYGrid))
         return NULL;
@@ -202,10 +208,10 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     
     // TODO: check types ok
     
-    npy_intp nRows = PyArray_DIM(pXGrid, 0);
-    npy_intp nCols = PyArray_DIM(pXGrid, 1);
+    nRows = PyArray_DIM(pXGrid, 0);
+    nCols = PyArray_DIM(pXGrid, 1);
     
-    npy_intp nVals = PyArray_DIM(pXVals, 0);
+    nVals = PyArray_DIM(pXVals, 0);
     
     // Create output
     pOutArray = PyArray_EMPTY(2, PyArray_DIMS(pXGrid), NPY_DOUBLE, 0);
@@ -221,16 +227,16 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
         return NULL;
     }
     
-    npy_intp i = 0;
-    npy_intp j = 0;
+    i = 0;
+    j = 0;
     if( nVals < 100 )
     {
         // check that these small number of points aren't all within a line
-        double meanX = 0;
-        double meanY = 0;
+        meanX = 0;
+        meanY = 0;
         
-        double varX = 0;
-        double varY = 0;
+        varX = 0;
+        varY = 0;
         
         
         for(i = 0; i < nVals; ++i)
@@ -259,7 +265,7 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     }
     
     // BUILD POINT ARRAYS
-    point *inPts = malloc(nVals * sizeof(point));
+    inPts = malloc(nVals * sizeof(point));
     for(i = 0; i < nVals; ++i)
     {
         inPts[i].x = *((double*)PyArray_GETPTR1(pXVals, i));
@@ -267,9 +273,9 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
         inPts[i].z = *((double*)PyArray_GETPTR1(pZVals, i));
     }
     
-    npy_intp nPtsOutGrid = nRows * nCols;
-    npy_intp idx = 0;
-    point *gPts = malloc(nPtsOutGrid * sizeof(point));
+    nPtsOutGrid = nRows * nCols;
+    idx = 0;
+    gPts = malloc(nPtsOutGrid * sizeof(point));
     for(i  = 0; i < nRows; ++i)
     {
         for(j = 0; j < nCols; ++j)

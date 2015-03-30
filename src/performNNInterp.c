@@ -23,9 +23,6 @@
 #include <Python.h>
 #include <numpy/arrayobject.h>
 
-#include <iostream>
-#include <string>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -77,16 +74,15 @@ int notDoubleVector2D(PyArrayObject *vec)
 
 static PyObject *PyNNInterp_interpNNGrid(PyObject *self, PyObject *args, PyObject *keywds)
 {
-    std::cout << "Entered of function.\n";
+    printf ("Entered of function.\n");
     PyArrayObject *inX;
     PyArrayObject *inY;
     PyArrayObject *inValues;
     PyArrayObject *xGrid;
     PyArrayObject *yGrid;
-    std::cout << "Created Variables.\n";
+    printf ("Created Variables.\n");
     
     static char *kwlist[] = {"x", "y", "values", "xGrid", "yGrid", NULL};
-    std::cout << "Created keywords list.\n";
     
     if(!PyArg_ParseTupleAndKeywords(args, keywds, "OOOOO:interpNNGrid", kwlist, &inX, &inY, &inValues, &xGrid, &yGrid))
     {
@@ -136,9 +132,9 @@ static PyObject *PyNNInterp_interpNNGrid(PyObject *self, PyObject *args, PyObjec
     size_t nYGridRows = yGrid->dimensions[0];
     size_t nYGridCols = yGrid->dimensions[1];
     
-    std::cout << "X [" << nXGridRows << ", " << nXGridCols << "]" << std::endl;
-    std::cout << "Y [" << nYGridRows << ", " << nYGridCols << "]" << std::endl;
-    
+    printf ("X [%f, %f]\n", nXGridRows, nXGridCols);
+    printf ("Y [%f, %f]\n", nYGridRows, nYGridCols);
+
     if( (nXGridRows != nYGridRows) | (nXGridCols != nYGridCols) )
     {
         PyErr_SetString(GETSTATE(self)->error, "xGrid and yGrid must be the same size.");
@@ -153,7 +149,7 @@ static PyObject *PyNNInterp_interpNNGrid(PyObject *self, PyObject *args, PyObjec
     
     for(int i = 0; i < nInX; ++i)
     {
-        std::cout << i << " = [" << inXVals[i] << ", " << inYVals[i] << ", " <<  inVals[i] << "]" << std::endl;
+        printf ("%d [%f, %f, %f]\n", i, inXVals[i], inYVals[i], inVals[i]);
     }
     
     
@@ -163,7 +159,7 @@ static PyObject *PyNNInterp_interpNNGrid(PyObject *self, PyObject *args, PyObjec
     
     
 
-    std::cout << "Hello World.\n";
+    printf ("Hello World.\n");
     
     /*
     PyObject *outGrid;

@@ -345,16 +345,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-// MSVC 2008 uses different names....
-#ifdef _MSC_VER
-    #if _MSC_VER >= 1600
-        #include <stdint.h>
-    #else        
-        typedef unsigned __int64    uint64_t;
-    #endif
-#else
-    #include <stdint.h>
-#endif
+#include <stdint.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include "config.h"
@@ -668,7 +659,7 @@ REAL o3derrboundA, o3derrboundB, o3derrboundC;
 
 /* Random number seed is not constant, but I've made it global anyway.       */
 
-uint64_t randomseed;                     /* Current random number seed. */
+uintptr_t randomseed;                     /* Current random number seed. */
 
 
 /* Mesh data structure.  Triangle operates on only one mesh, but the mesh    */
@@ -844,7 +835,7 @@ struct behavior {
 /*  extracting an orientation (in the range 0 to 2) and a pointer to the     */
 /*  beginning of a triangle.  The encode() routine compresses a pointer to a */
 /*  triangle and an orientation into a single pointer.  My assumptions that  */
-/*  triangles are four-byte-aligned and that the `uint64_t' type is     */
+/*  triangles are four-byte-aligned and that the `uintptr_t' type is     */
 /*  long enough to hold a pointer are two of the few kludges in this program.*/
 /*                                                                           */
 /*  Subsegments are manipulated similarly.  A pointer to a subsegment        */
@@ -955,16 +946,16 @@ int minus1mod3[3] = {2, 0, 1};
 /*   extracted from the two least significant bits of the pointer.           */
 
 #define decode(ptr, otri)                                                     \
-  (otri).orient = (int) ((uint64_t) (ptr) & (uint64_t) 3l);         \
+  (otri).orient = (int) ((uintptr_t) (ptr) & (uintptr_t) 3l);         \
   (otri).tri = (triangle *)                                                   \
-                  ((uint64_t) (ptr) ^ (uint64_t) (otri).orient)
+                  ((uintptr_t) (ptr) ^ (uintptr_t) (otri).orient)
 
 /* encode() compresses an oriented triangle into a single pointer.  It       */
 /*   relies on the assumption that all triangles are aligned to four-byte    */
 /*   boundaries, so the two least significant bits of (otri).tri are zero.   */
 
 #define encode(otri)                                                          \
-  (triangle) ((uint64_t) (otri).tri | (uint64_t) (otri).orient)
+  (triangle) ((uintptr_t) (otri).tri | (uintptr_t) (otri).orient)
 
 /* The following handle manipulation primitives are all described by Guibas  */
 /*   and Stolfi.  However, Guibas and Stolfi use an edge-based data          */
@@ -1128,16 +1119,16 @@ int minus1mod3[3] = {2, 0, 1};
 
 #define infect(otri)                                                          \
   (otri).tri[6] = (triangle)                                                  \
-                    ((uint64_t) (otri).tri[6] | (uint64_t) 2l)
+                    ((uintptr_t) (otri).tri[6] | (uintptr_t) 2l)
 
 #define uninfect(otri)                                                        \
   (otri).tri[6] = (triangle)                                                  \
-                    ((uint64_t) (otri).tri[6] & ~ (uint64_t) 2l)
+                    ((uintptr_t) (otri).tri[6] & ~ (uintptr_t) 2l)
 
 /* Test a triangle for viral infection.                                      */
 
 #define infected(otri)                                                        \
-  (((uint64_t) (otri).tri[6] & (uint64_t) 2l) != 0l)
+  (((uintptr_t) (otri).tri[6] & (uintptr_t) 2l) != 0l)
 
 /* Check or set a triangle's attributes.                                     */
 
@@ -1175,16 +1166,16 @@ int minus1mod3[3] = {2, 0, 1};
 /*   are masked out to produce the real pointer.                             */
 
 #define sdecode(sptr, osub)                                                   \
-  (osub).ssorient = (int) ((uint64_t) (sptr) & (uint64_t) 1l);      \
+  (osub).ssorient = (int) ((uintptr_t) (sptr) & (uintptr_t) 1l);      \
   (osub).ss = (subseg *)                                                      \
-              ((uint64_t) (sptr) & ~ (uint64_t) 3l)
+              ((uintptr_t) (sptr) & ~ (uintptr_t) 3l)
 
 /* sencode() compresses an oriented subsegment into a single pointer.  It    */
 /*   relies on the assumption that all subsegments are aligned to two-byte   */
 /*   boundaries, so the least significant bit of (osub).ss is zero.          */
 
 #define sencode(osub)                                                         \
-  (subseg) ((uint64_t) (osub).ss | (uint64_t) (osub).ssorient)
+  (subseg) ((uintptr_t) (osub).ss | (uintptr_t) (osub).ssorient)
 
 /* ssym() toggles the orientation of a subsegment.                           */
 
@@ -3550,27 +3541,27 @@ struct otri *t;
   struct osub printsh;
   vertex printvertex;
 
-  fprintf(stderr, "triangle x%" PRIu64 " with orientation %d:\n", (uint64_t) t->tri,
+  fprintf(stderr, "triangle x%" PRIxPTR " with orientation %d:\n", (uintptr_t) t->tri,
          t->orient);
   decode(t->tri[0], printtri);
   if (printtri.tri == m->dummytri) {
     fprintf(stderr, "    [0] = Outer space\n");
   } else {
-    fprintf(stderr, "    [0] = x%" PRIu64 "  %d\n", (uint64_t) printtri.tri,
+    fprintf(stderr, "    [0] = x%" PRIxPTR "  %d\n", (uintptr_t) printtri.tri,
            printtri.orient);
   }
   decode(t->tri[1], printtri);
   if (printtri.tri == m->dummytri) {
     fprintf(stderr, "    [1] = Outer space\n");
   } else {
-    fprintf(stderr, "    [1] = x%" PRIu64 "  %d\n", (uint64_t) printtri.tri,
+    fprintf(stderr, "    [1] = x%" PRIxPTR "  %d\n", (uintptr_t) printtri.tri,
            printtri.orient);
   }
   decode(t->tri[2], printtri);
   if (printtri.tri == m->dummytri) {
     fprintf(stderr, "    [2] = Outer space\n");
   } else {
-    fprintf(stderr, "    [2] = x%" PRIu64 "  %d\n", (uint64_t) printtri.tri,
+    fprintf(stderr, "    [2] = x%" PRIxPTR "  %d\n", (uintptr_t) printtri.tri,
            printtri.orient);
   }
 
@@ -3578,38 +3569,38 @@ struct otri *t;
   if (printvertex == (vertex) NULL)
     fprintf(stderr, "    Origin[%d] = NULL\n", (t->orient + 1) % 3 + 3);
   else
-    fprintf(stderr, "    Origin[%d] = x%" PRIu64 "  (%.12g, %.12g)\n",
-           (t->orient + 1) % 3 + 3, (uint64_t) printvertex,
+    fprintf(stderr, "    Origin[%d] = x%" PRIxPTR "  (%.12g, %.12g)\n",
+           (t->orient + 1) % 3 + 3, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
   dest(*t, printvertex);
   if (printvertex == (vertex) NULL)
     fprintf(stderr, "    Dest  [%d] = NULL\n", (t->orient + 2) % 3 + 3);
   else
-    fprintf(stderr, "    Dest  [%d] = x%" PRIu64 "  (%.12g, %.12g)\n",
-           (t->orient + 2) % 3 + 3, (uint64_t) printvertex,
+    fprintf(stderr, "    Dest  [%d] = x%" PRIxPTR "  (%.12g, %.12g)\n",
+           (t->orient + 2) % 3 + 3, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
   apex(*t, printvertex);
   if (printvertex == (vertex) NULL)
     fprintf(stderr, "    Apex  [%d] = NULL\n", t->orient + 3);
   else
-    fprintf(stderr, "    Apex  [%d] = x%" PRIu64 "  (%.12g, %.12g)\n",
-           t->orient + 3, (uint64_t) printvertex,
+    fprintf(stderr, "    Apex  [%d] = x%" PRIxPTR "  (%.12g, %.12g)\n",
+           t->orient + 3, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
 
   if (b->usesegments) {
     sdecode(t->tri[6], printsh);
     if (printsh.ss != m->dummysub) {
-      fprintf(stderr, "    [6] = x%" PRIu64 "  %d\n", (uint64_t) printsh.ss,
+      fprintf(stderr, "    [6] = x%" PRIxPTR "  %d\n", (uintptr_t) printsh.ss,
              printsh.ssorient);
     }
     sdecode(t->tri[7], printsh);
     if (printsh.ss != m->dummysub) {
-      fprintf(stderr, "    [7] = x%" PRIu64 "   %d\n", (uint64_t) printsh.ss,
+      fprintf(stderr, "    [7] = x%" PRIxPTR "   %d\n", (uintptr_t) printsh.ss,
              printsh.ssorient);
     }
     sdecode(t->tri[8], printsh);
     if (printsh.ss != m->dummysub) {
-      fprintf(stderr, "    [8] = x%" PRIu64 "   %d\n", (uint64_t) printsh.ss,
+      fprintf(stderr, "    [8] = x%" PRIxPTR "   %d\n", (uintptr_t) printsh.ss,
              printsh.ssorient);
     }
   }
@@ -3644,20 +3635,20 @@ struct osub *s;
   struct otri printtri;
   vertex printvertex;
 
-  fprintf(stderr, "subsegment x%" PRIu64 " with orientation %d and mark %d:\n",
-         (uint64_t) s->ss, s->ssorient, mark(*s));
+  fprintf(stderr, "subsegment x%" PRIxPTR " with orientation %d and mark %d:\n",
+         (uintptr_t) s->ss, s->ssorient, mark(*s));
   sdecode(s->ss[0], printsh);
   if (printsh.ss == m->dummysub) {
     fprintf(stderr, "    [0] = No subsegment\n");
   } else {
-    fprintf(stderr, "    [0] = x%" PRIu64 "  %d\n", (uint64_t) printsh.ss,
+    fprintf(stderr, "    [0] = x%" PRIxPTR "  %d\n", (uintptr_t) printsh.ss,
            printsh.ssorient);
   }
   sdecode(s->ss[1], printsh);
   if (printsh.ss == m->dummysub) {
     fprintf(stderr, "    [1] = No subsegment\n");
   } else {
-    fprintf(stderr, "    [1] = x%" PRIu64 "  %d\n", (uint64_t) printsh.ss,
+    fprintf(stderr, "    [1] = x%" PRIxPTR "  %d\n", (uintptr_t) printsh.ss,
            printsh.ssorient);
   }
 
@@ -3665,29 +3656,29 @@ struct osub *s;
   if (printvertex == (vertex) NULL)
     fprintf(stderr, "    Origin[%d] = NULL\n", 2 + s->ssorient);
   else
-    fprintf(stderr, "    Origin[%d] = x%" PRIu64 "  (%.12g, %.12g)\n",
-           2 + s->ssorient, (uint64_t) printvertex,
+    fprintf(stderr, "    Origin[%d] = x%" PRIxPTR "  (%.12g, %.12g)\n",
+           2 + s->ssorient, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
   sdest(*s, printvertex);
   if (printvertex == (vertex) NULL)
     fprintf(stderr, "    Dest  [%d] = NULL\n", 3 - s->ssorient);
   else
-    fprintf(stderr, "    Dest  [%d] = x%" PRIu64 "  (%.12g, %.12g)\n",
-           3 - s->ssorient, (uint64_t) printvertex,
+    fprintf(stderr, "    Dest  [%d] = x%" PRIxPTR "  (%.12g, %.12g)\n",
+           3 - s->ssorient, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
 
   decode(s->ss[4], printtri);
   if (printtri.tri == m->dummytri) {
     fprintf(stderr, "    [4] = Outer space\n");
   } else {
-    fprintf(stderr, "    [4] = x%" PRIu64 "  %d\n", (uint64_t) printtri.tri,
+    fprintf(stderr, "    [4] = x%" PRIxPTR "  %d\n", (uintptr_t) printtri.tri,
            printtri.orient);
   }
   decode(s->ss[5], printtri);
   if (printtri.tri == m->dummytri) {
     fprintf(stderr, "    [5] = Outer space\n");
   } else {
-    fprintf(stderr, "    [5] = x%" PRIu64 "  %d\n", (uint64_t) printtri.tri,
+    fprintf(stderr, "    [5] = x%" PRIxPTR "  %d\n", (uintptr_t) printtri.tri,
            printtri.orient);
   }
 }
@@ -3718,7 +3709,7 @@ struct memorypool *pool;
 #endif /* not ANSI_DECLARATORS */
 
 {
-  uint64_t alignptr;
+  uintptr_t alignptr;
 
   pool->items = 0;
   pool->maxitems = 0;
@@ -3726,11 +3717,11 @@ struct memorypool *pool;
   /* Set the currently active block. */
   pool->nowblock = pool->firstblock;
   /* Find the first item in the pool.  Increment by the size of (VOID *). */
-  alignptr = (uint64_t) (pool->nowblock + 1);
+  alignptr = (uintptr_t) (pool->nowblock + 1);
   /* Align the item on an `alignbytes'-byte boundary. */
   pool->nextitem = (VOID *)
-    (alignptr + (uint64_t) pool->alignbytes -
-     (alignptr % (uint64_t) pool->alignbytes));
+    (alignptr + (uintptr_t) pool->alignbytes -
+     (alignptr % (uintptr_t) pool->alignbytes));
   /* There are lots of unallocated items left in this block. */
   pool->unallocateditems = pool->itemsperblock;
   /* The stack of deallocated items is empty. */
@@ -3839,7 +3830,7 @@ struct memorypool *pool;
 {
   VOID *newitem;
   VOID **newblock;
-  uint64_t alignptr;
+  uintptr_t alignptr;
 
   /* First check the linked list of dead items.  If the list is not   */
   /*   empty, allocate an item from the list rather than a fresh one. */
@@ -3862,11 +3853,11 @@ struct memorypool *pool;
       pool->nowblock = (VOID **) *(pool->nowblock);
       /* Find the first item in the block.    */
       /*   Increment by the size of (VOID *). */
-      alignptr = (uint64_t) (pool->nowblock + 1);
+      alignptr = (uintptr_t) (pool->nowblock + 1);
       /* Align the item on an `alignbytes'-byte boundary. */
       pool->nextitem = (VOID *)
-        (alignptr + (uint64_t) pool->alignbytes -
-         (alignptr % (uint64_t) pool->alignbytes));
+        (alignptr + (uintptr_t) pool->alignbytes -
+         (alignptr % (uintptr_t) pool->alignbytes));
       /* There are lots of unallocated items left in this block. */
       pool->unallocateditems = pool->itemsperblock;
     }
@@ -3924,16 +3915,16 @@ struct memorypool *pool;
 #endif /* not ANSI_DECLARATORS */
 
 {
-  uint64_t alignptr;
+  uintptr_t alignptr;
 
   /* Begin the traversal in the first block. */
   pool->pathblock = pool->firstblock;
   /* Find the first item in the block.  Increment by the size of (VOID *). */
-  alignptr = (uint64_t) (pool->pathblock + 1);
+  alignptr = (uintptr_t) (pool->pathblock + 1);
   /* Align with item on an `alignbytes'-byte boundary. */
   pool->pathitem = (VOID *)
-    (alignptr + (uint64_t) pool->alignbytes -
-     (alignptr % (uint64_t) pool->alignbytes));
+    (alignptr + (uintptr_t) pool->alignbytes -
+     (alignptr % (uintptr_t) pool->alignbytes));
   /* Set the number of items left in the current block. */
   pool->pathitemsleft = pool->itemsperblock;
 }
@@ -3961,7 +3952,7 @@ struct memorypool *pool;
 
 {
   VOID *newitem;
-  uint64_t alignptr;
+  uintptr_t alignptr;
 
   /* Stop upon exhausting the list of items. */
   if (pool->pathitem == pool->nextitem) {
@@ -3972,11 +3963,11 @@ struct memorypool *pool;
     /* Find the next block. */
     pool->pathblock = (VOID **) *(pool->pathblock);
     /* Find the first item in the block.  Increment by the size of (VOID *). */
-    alignptr = (uint64_t) (pool->pathblock + 1);
+    alignptr = (uintptr_t) (pool->pathblock + 1);
     /* Align with item on an `alignbytes'-byte boundary. */
     pool->pathitem = (VOID *)
-      (alignptr + (uint64_t) pool->alignbytes -
-       (alignptr % (uint64_t) pool->alignbytes));
+      (alignptr + (uintptr_t) pool->alignbytes -
+       (alignptr % (uintptr_t) pool->alignbytes));
     /* Set the number of items left in the current block. */
     pool->pathitemsleft = pool->itemsperblock;
   }
@@ -4031,16 +4022,16 @@ int subsegwords;
 #endif /* not ANSI_DECLARATORS */
 
 {
-  uint64_t alignptr;
+  uintptr_t alignptr;
 
   /* Set up `dummytri', the `triangle' that occupies "outer space." */
   m->dummytribase = (triangle *) trimalloc(trianglewords * sizeof(triangle) +
                                            m->triangles.alignbytes);
   /* Align `dummytri' on a `triangles.alignbytes'-byte boundary. */
-  alignptr = (uint64_t) m->dummytribase;
+  alignptr = (uintptr_t) m->dummytribase;
   m->dummytri = (triangle *)
-    (alignptr + (uint64_t) m->triangles.alignbytes -
-     (alignptr % (uint64_t) m->triangles.alignbytes));
+    (alignptr + (uintptr_t) m->triangles.alignbytes -
+     (alignptr % (uintptr_t) m->triangles.alignbytes));
   /* Initialize the three adjoining triangles to be "outer space."  These  */
   /*   will eventually be changed by various bonding operations, but their */
   /*   values don't really matter, as long as they can legally be          */
@@ -4060,10 +4051,10 @@ int subsegwords;
     m->dummysubbase = (subseg *) trimalloc(subsegwords * sizeof(subseg) +
                                            m->subsegs.alignbytes);
     /* Align `dummysub' on a `subsegs.alignbytes'-byte boundary. */
-    alignptr = (uint64_t) m->dummysubbase;
+    alignptr = (uintptr_t) m->dummysubbase;
     m->dummysub = (subseg *)
-      (alignptr + (uint64_t) m->subsegs.alignbytes -
-       (alignptr % (uint64_t) m->subsegs.alignbytes));
+      (alignptr + (uintptr_t) m->subsegs.alignbytes -
+       (alignptr % (uintptr_t) m->subsegs.alignbytes));
     /* Initialize the two adjoining subsegments to be the omnipresent      */
     /*   subsegment.  These will eventually be changed by various bonding  */
     /*   operations, but their values don't really matter, as long as they */
@@ -4413,7 +4404,7 @@ int number;
 {
   VOID **getblock;
   vertex foundvertex;
-  uint64_t alignptr;
+  uintptr_t alignptr;
   int current;
 
   getblock = m->vertices.firstblock;
@@ -4424,9 +4415,9 @@ int number;
     current += m->vertices.itemsperblock;
   }
   /* Now find the right vertex. */
-  alignptr = (uint64_t) (getblock + 1);
-  foundvertex = (vertex) (alignptr + (uint64_t) m->vertices.alignbytes -
-                          (alignptr % (uint64_t) m->vertices.alignbytes));
+  alignptr = (uintptr_t) (getblock + 1);
+  foundvertex = (vertex) (alignptr + (uintptr_t) m->vertices.alignbytes -
+                          (alignptr % (uintptr_t) m->vertices.alignbytes));
   while (current < number) {
     foundvertex += m->vertices.itemwords;
     current++;
@@ -6449,9 +6440,9 @@ struct mesh *m;
 /*****************************************************************************/
 
 #ifdef ANSI_DECLARATORS
-uint64_t randomnation(unsigned int choices)
+uintptr_t randomnation(unsigned int choices)
 #else /* not ANSI_DECLARATORS */
-uint64_t randomnation(choices)
+uintptr_t randomnation(choices)
 unsigned int choices;
 #endif /* not ANSI_DECLARATORS */
 
@@ -7644,10 +7635,11 @@ struct otri *searchtri;
   triangle *firsttri;
   struct otri sampletri;
   vertex torg, tdest;
-  uint64_t alignptr;
+  uintptr_t alignptr;
   REAL searchdist, dist;
   REAL ahead;
-  long sampleblocks, samplesperblock, samplenum;
+  long sampleblocks, samplesperblock;
+  uintptr_t samplenum;
   long triblocks;
   long i, j;
   triangle ptr;                         /* Temporary variable used by sym(). */
@@ -7701,9 +7693,9 @@ struct otri *searchtri;
   sampleblock = m->triangles.firstblock;
   sampletri.orient = 0;
   for (i = 0; i < sampleblocks; i++) {
-    alignptr = (uint64_t) (sampleblock + 1);
-    firsttri = (triangle *) (alignptr + (uint64_t) m->triangles.alignbytes
-                      - (alignptr % (uint64_t) m->triangles.alignbytes));
+    alignptr = (uintptr_t) (sampleblock + 1);
+    firsttri = (triangle *) (alignptr + (uintptr_t) m->triangles.alignbytes
+                      - (alignptr % (uintptr_t) m->triangles.alignbytes));
     for (j = 0; j < samplesperblock; j++) {
       if (i == triblocks - 1) {
         samplenum = randomnation((int)

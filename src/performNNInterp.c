@@ -49,7 +49,6 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
     PyObject *pOutArray;
     npy_intp nRows, nCols, nVals, i, j, nPtsOutGrid, idx;
     point *inPts, *gPts;
-    double minWeight, meanX, meanY, varX, varY;
     
     if( !PyArg_ParseTuple(args, "OOOOO:NaturalNeighbour", &pXVals, &pYVals, &pZVals, &pXGrid, &pYGrid))
         return NULL;
@@ -94,42 +93,6 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         return NULL;
     }
     
-    i = 0;
-    j = 0;
-    if( nVals < 100 )
-    {
-        // check that these small number of points aren't all within a line
-        meanX = 0;
-        meanY = 0;
-        
-        varX = 0;
-        varY = 0;
-        
-        for(i = 0; i < nVals; ++i)
-        {
-            meanX += *((double*)PyArray_GETPTR1(pXVals, i));
-            meanY += *((double*)PyArray_GETPTR1(pYVals, i));
-        }
-        
-        meanX = meanX / nVals;
-        meanY = meanY / nVals;
-        
-        for(i = 0; i < nVals; ++i)
-        {
-            varX += *((double*)PyArray_GETPTR1(pXVals, i)) - meanX;
-            varY += *((double*)PyArray_GETPTR1(pYVals, i)) - meanY;
-        }
-        
-        varX = fabs(varX / nVals);
-        varY = fabs(varY / nVals);
-        
-        if((varX < 4) || (varY < 4))
-        {
-            PyErr_SetString(GETSTATE(self)->error, "Points are all within a line.");
-            return NULL;
-        }
-    }
-    
     // BUILD POINT ARRAYS
     inPts = malloc(nVals * sizeof(point));
     for(i = 0; i < nVals; ++i)
@@ -153,8 +116,7 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         }
     }
     
-    minWeight = 0.0;
-    nnpi_interpolate_points(nVals, inPts, minWeight, nPtsOutGrid, gPts);
+    nnpi_interpolate_points(nVals, inPts, 0.0, nPtsOutGrid, gPts);
     
     free(inPts);
     
@@ -182,7 +144,6 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     PyObject *pOutArray;
     npy_intp nRows, nCols, nVals, i, j, nPtsOutGrid, idx;
     point *inPts, *gPts;
-    double minWeight, meanX, meanY, varX, varY;
     
     if( !PyArg_ParseTuple(args, "OOOOO:Linear", &pXVals, &pYVals, &pZVals, &pXGrid, &pYGrid))
         return NULL;
@@ -225,43 +186,6 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     {
         PyErr_SetString(GETSTATE(self)->error, "Not enough points, need at least 3.");
         return NULL;
-    }
-    
-    i = 0;
-    j = 0;
-    if( nVals < 100 )
-    {
-        // check that these small number of points aren't all within a line
-        meanX = 0;
-        meanY = 0;
-        
-        varX = 0;
-        varY = 0;
-        
-        
-        for(i = 0; i < nVals; ++i)
-        {
-            meanX += *((double*)PyArray_GETPTR1(pXVals, i));
-            meanY += *((double*)PyArray_GETPTR1(pYVals, i));
-        }
-        
-        meanX = meanX / nVals;
-        meanY = meanY / nVals;
-        
-        for(i = 0; i < nVals; ++i)
-        {
-            varX += *((double*)PyArray_GETPTR1(pXVals, i)) - meanX;
-            varY += *((double*)PyArray_GETPTR1(pYVals, i)) - meanY;
-        }
-        
-        varX = fabs(varX / nVals);
-        varY = fabs(varY / nVals);
-        
-        if((varX < 4) || (varY < 4))
-        {
-            PyErr_SetString(GETSTATE(self)->error, "Points are all within a line.");
-            return NULL;
-        }
     }
     
     // BUILD POINT ARRAYS

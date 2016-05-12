@@ -72,7 +72,14 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         return NULL;
     }
     
-    // TODO: check types ok
+    // check types ok
+    if( (PyArray_TYPE(pXVals) != NPY_DOUBLE) || (PyArray_TYPE(pYVals) != NPY_DOUBLE) || 
+        (PyArray_TYPE(pZVals) != NPY_DOUBLE) || (PyArray_TYPE(pXGrid) != NPY_DOUBLE) ||
+        (PyArray_TYPE(pYGrid) != NPY_DOUBLE) )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "All input arrays must be double");
+        return NULL;
+    }
     
     nRows = PyArray_DIM(pXGrid, 0);
     nCols = PyArray_DIM(pXGrid, 1);
@@ -95,6 +102,12 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
     
     // BUILD POINT ARRAYS
     inPts = malloc(nVals * sizeof(point));
+    if( inPts == NULL )
+    {
+        Py_DECREF(pOutArray);
+        PyErr_SetString(GETSTATE(self)->error, "Failed to create temporary array");
+        return NULL;
+    }
     for(i = 0; i < nVals; ++i)
     {
         inPts[i].x = *((double*)PyArray_GETPTR1(pXVals, i));
@@ -167,7 +180,14 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
         return NULL;
     }
     
-    // TODO: check types ok
+    // check types ok
+    if( (PyArray_TYPE(pXVals) != NPY_DOUBLE) || (PyArray_TYPE(pYVals) != NPY_DOUBLE) || 
+        (PyArray_TYPE(pZVals) != NPY_DOUBLE) || (PyArray_TYPE(pXGrid) != NPY_DOUBLE) ||
+        (PyArray_TYPE(pYGrid) != NPY_DOUBLE) )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "All input arrays must be double");
+        return NULL;
+    }
     
     nRows = PyArray_DIM(pXGrid, 0);
     nCols = PyArray_DIM(pXGrid, 1);
@@ -190,6 +210,12 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     
     // BUILD POINT ARRAYS
     inPts = malloc(nVals * sizeof(point));
+    if( inPts == NULL )
+    {
+        Py_DECREF(pOutArray);
+        PyErr_SetString(GETSTATE(self)->error, "Failed to create temporary array");
+        return NULL;
+    }
     for(i = 0; i < nVals; ++i)
     {
         inPts[i].x = *((double*)PyArray_GETPTR1(pXVals, i));

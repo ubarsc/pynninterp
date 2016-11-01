@@ -45,8 +45,8 @@ static struct PyNNInterpState _state;
 static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
 {
     //std::cout.precision(12);
-    PyObject *pXVals, *pYVals, *pZVals, *pXGrid, *pYGrid;
-    PyObject *pOutArray;
+    PyArrayObject *pXVals, *pYVals, *pZVals, *pXGrid, *pYGrid;
+    PyArrayObject *pOutArray;
     npy_intp nRows, nCols, nVals, i, j, nPtsOutGrid, idx;
     point *inPts, *gPts;
     
@@ -87,7 +87,7 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
     nVals = PyArray_DIM(pXVals, 0);
     
     // Create output
-    pOutArray = PyArray_EMPTY(2, PyArray_DIMS(pXGrid), NPY_DOUBLE, 0);
+    pOutArray = (PyArrayObject*)PyArray_EMPTY(2, PyArray_DIMS(pXGrid), NPY_DOUBLE, 0);
     if( pOutArray == NULL )
     {
         PyErr_SetString(GETSTATE(self)->error, "Failed to create array");
@@ -97,6 +97,7 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
     if( PyArray_DIM(pXVals, 0) < 3 )
     {
         PyErr_SetString(GETSTATE(self)->error, "Not enough points, need at least 3.");
+        Py_DECREF(pOutArray);
         return NULL;
     }
     
@@ -146,15 +147,110 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
     
     free(gPts);
     
-    return pOutArray;
+    return (PyObject*)pOutArray;
 }
+
+static PyObject *pynninterp_naturalneighbour_pts(PyObject *self, PyObject *args)
+{
+    //std::cout.precision(12);
+    PyArrayObject *pXVals, *pYVals, *pZVals, *pXYGrid;
+    PyArrayObject *pOutArray;
+    npy_intp nPts, nVals, i;
+    point *inPts, *gPts;
+    
+    if( !PyArg_ParseTuple(args, "OOOO:NaturalNeighbourPts", &pXVals, &pYVals, &pZVals, &pXYGrid))
+        return NULL;
+    
+    if( !PyArray_Check(pXVals) || !PyArray_Check(pYVals) || !PyArray_Check(pZVals) || !PyArray_Check(pXYGrid) )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "All arguments must be numpy arrays");
+        return NULL;
+    }
+    
+    // Check dimensions match
+    if( (PyArray_DIM(pXVals, 0) != PyArray_DIM(pYVals, 0)) | (PyArray_DIM(pXVals, 0) != PyArray_DIM(pZVals, 0)))
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Training X, Y and Z arrays must all be of the same length");
+        return NULL;
+    }
+    
+    if( PyArray_DIM(pXYGrid, 1) != 2 )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Interpolation point array must be shape N*2");
+        return NULL;
+    }
+    
+    // check types ok
+    if( (PyArray_TYPE(pXVals) != NPY_DOUBLE) || (PyArray_TYPE(pYVals) != NPY_DOUBLE) || 
+        (PyArray_TYPE(pZVals) != NPY_DOUBLE) || (PyArray_TYPE(pXYGrid) != NPY_DOUBLE) )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "All input arrays must be double");
+        return NULL;
+    }
+    
+    nPts = PyArray_DIM(pXYGrid, 0);
+    nVals = PyArray_DIM(pXVals, 0);
+    
+    // Create output
+    pOutArray = (PyArrayObject*)PyArray_EMPTY(1, &nPts, NPY_DOUBLE, 0);
+    if( pOutArray == NULL )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Failed to create array");
+        return NULL;
+    }
+    
+    if( PyArray_DIM(pXVals, 0) < 3 )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Not enough points, need at least 3.");
+        Py_DECREF(pOutArray);
+        return NULL;
+    }
+    
+    // BUILD POINT ARRAYS
+    inPts = malloc(nVals * sizeof(point));
+    if( inPts == NULL )
+    {
+        Py_DECREF(pOutArray);
+        PyErr_SetString(GETSTATE(self)->error, "Failed to create temporary array");
+        return NULL;
+    }
+    for(i = 0; i < nVals; ++i)
+    {
+        inPts[i].x = *((double*)PyArray_GETPTR1(pXVals, i));
+        inPts[i].y = *((double*)PyArray_GETPTR1(pYVals, i));
+        inPts[i].z = *((double*)PyArray_GETPTR1(pZVals, i));
+    }
+    
+    gPts = malloc(nPts * sizeof(point));
+    for(i = 0; i < nPts; ++i)
+    {
+        gPts[i].x = *((double*)PyArray_GETPTR2(pXYGrid, i, 0));
+        gPts[i].y = *((double*)PyArray_GETPTR2(pXYGrid, i, 1));
+        gPts[i].z = 0.0;
+    }
+    
+    nnpi_interpolate_points(nVals, inPts, 0.0, nPts, gPts);
+    
+    free(inPts);
+    
+    // POPULATE POINTS
+    for(i  = 0; i < nPts; ++i)
+    {
+        *((double*)PyArray_GETPTR1(pOutArray, i)) = gPts[i].z;
+    }
+    
+    free(gPts);
+    
+    return (PyObject*)pOutArray;
+}
+
 
 
 static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
 {
     //std::cout.precision(12);
-    PyObject *pXVals, *pYVals, *pZVals, *pXGrid, *pYGrid;
-    PyObject *pOutArray;
+    PyArrayObject *pXVals, *pYVals, *pZVals, *pXGrid, *pYGrid;
+    PyArrayObject *pOutArray;
     npy_intp nRows, nCols, nVals, i, j, nPtsOutGrid, idx;
     point *inPts, *gPts;
     
@@ -195,7 +291,7 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     nVals = PyArray_DIM(pXVals, 0);
     
     // Create output
-    pOutArray = PyArray_EMPTY(2, PyArray_DIMS(pXGrid), NPY_DOUBLE, 0);
+    pOutArray = (PyArrayObject*)PyArray_EMPTY(2, PyArray_DIMS(pXGrid), NPY_DOUBLE, 0);
     if( pOutArray == NULL )
     {
         PyErr_SetString(GETSTATE(self)->error, "Failed to create array");
@@ -205,6 +301,7 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     if( PyArray_DIM(pXVals, 0) < 3 )
     {
         PyErr_SetString(GETSTATE(self)->error, "Not enough points, need at least 3.");
+        Py_DECREF(pOutArray);
         return NULL;
     }
     
@@ -254,8 +351,103 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
     
     free(gPts);
     
-    return pOutArray;
+    return (PyObject*)pOutArray;
 }
+
+static PyObject *pynninterp_linear_pts(PyObject *self, PyObject *args)
+{
+    //std::cout.precision(12);
+    PyArrayObject *pXVals, *pYVals, *pZVals, *pXYGrid;
+    PyArrayObject *pOutArray;
+    npy_intp nPts, nVals, i;
+    point *inPts, *gPts;
+    
+    if( !PyArg_ParseTuple(args, "OOOO:NaturalNeighbourPts", &pXVals, &pYVals, &pZVals, &pXYGrid))
+        return NULL;
+    
+    if( !PyArray_Check(pXVals) || !PyArray_Check(pYVals) || !PyArray_Check(pZVals) || !PyArray_Check(pXYGrid) )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "All arguments must be numpy arrays");
+        return NULL;
+    }
+    
+    // Check dimensions match
+    if( (PyArray_DIM(pXVals, 0) != PyArray_DIM(pYVals, 0)) | (PyArray_DIM(pXVals, 0) != PyArray_DIM(pZVals, 0)))
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Training X, Y and Z arrays must all be of the same length");
+        return NULL;
+    }
+    
+    if( PyArray_DIM(pXYGrid, 1) != 2 )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Interpolation point array must be shape N*2");
+        return NULL;
+    }
+    
+    // check types ok
+    if( (PyArray_TYPE(pXVals) != NPY_DOUBLE) || (PyArray_TYPE(pYVals) != NPY_DOUBLE) || 
+        (PyArray_TYPE(pZVals) != NPY_DOUBLE) || (PyArray_TYPE(pXYGrid) != NPY_DOUBLE) )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "All input arrays must be double");
+        return NULL;
+    }
+    
+    nPts = PyArray_DIM(pXYGrid, 0);
+    nVals = PyArray_DIM(pXVals, 0);
+    
+    // Create output
+    pOutArray = (PyArrayObject*)PyArray_EMPTY(1, &nPts, NPY_DOUBLE, 0);
+    if( pOutArray == NULL )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Failed to create array");
+        return NULL;
+    }
+    
+    if( PyArray_DIM(pXVals, 0) < 3 )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Not enough points, need at least 3.");
+        Py_DECREF(pOutArray);
+        return NULL;
+    }
+    
+    // BUILD POINT ARRAYS
+    inPts = malloc(nVals * sizeof(point));
+    if( inPts == NULL )
+    {
+        Py_DECREF(pOutArray);
+        PyErr_SetString(GETSTATE(self)->error, "Failed to create temporary array");
+        return NULL;
+    }
+    for(i = 0; i < nVals; ++i)
+    {
+        inPts[i].x = *((double*)PyArray_GETPTR1(pXVals, i));
+        inPts[i].y = *((double*)PyArray_GETPTR1(pYVals, i));
+        inPts[i].z = *((double*)PyArray_GETPTR1(pZVals, i));
+    }
+    
+    gPts = malloc(nPts * sizeof(point));
+    for(i = 0; i < nPts; ++i)
+    {
+        gPts[i].x = *((double*)PyArray_GETPTR2(pXYGrid, i, 0));
+        gPts[i].y = *((double*)PyArray_GETPTR2(pXYGrid, i, 1));
+        gPts[i].z = 0.0;
+    }
+    
+    lpi_interpolate_points(nVals, inPts, nPts, gPts);
+    
+    free(inPts);
+    
+    // POPULATE POINTS
+    for(i  = 0; i < nPts; ++i)
+    {
+        *((double*)PyArray_GETPTR1(pOutArray, i)) = gPts[i].z;
+    }
+    
+    free(gPts);
+    
+    return (PyObject*)pOutArray;
+}
+
 
 /* Our list of functions in this module*/
 static PyMethodDef PyNNInterpMethods[] = {
@@ -281,6 +473,24 @@ static PyMethodDef PyNNInterpMethods[] = {
         "  xgrid is a 2d array of x coordinates to interpolate at\n"
         "  ygrid is a 2d array of y coordinates to interpolate at\n"
         "xgrid and xgrid must be the same shape"},
+    {"NaturalNeighbourPts", pynninterp_naturalneighbour_pts, METH_VARARGS,
+        "Perform Natural Neighbour Interpolation at points\n"
+        "call signature: arr = NaturalNeighbourPts(xvals, yvals, zvals, xygrid)\n"
+        "where:\n"
+        "  xvals is a 1d array of the x values of the points\n"
+        "  yvals is a 1d array of the y values of the points\n"
+        "  zvals is a 1d array of the z values of the points\n"
+        "xvals, yvals and zvals should have the same length\n"
+        "  xygrid is a 2d array of coordinates in the form x,y\n"},
+    {"LinearPts", pynninterp_linear_pts, METH_VARARGS,
+        "Perform Linear (TIN) Interpolation at points\n"
+        "call signature: arr = LinearPts(xvals, yvals, zvals, xygrid)\n"
+        "where:\n"
+        "  xvals is a 1d array of the x values of the points\n"
+        "  yvals is a 1d array of the y values of the points\n"
+        "  zvals is a 1d array of the z values of the points\n"
+        "xvals, yvals and zvals should have the same length\n"
+        "  xygrid is a 2d array of coordinates in the form x,y\n"},
     {NULL}        /* Sentinel */
 };
 

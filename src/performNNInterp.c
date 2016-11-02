@@ -58,6 +58,14 @@ static PyObject *pynninterp_naturalneighbour(PyObject *self, PyObject *args)
         PyErr_SetString(GETSTATE(self)->error, "All arguments must be numpy arrays");
         return NULL;
     }
+
+    // check dims
+    if( (PyArray_NDIM(pXVals) != 1) || (PyArray_NDIM(pYVals) != 1) || (PyArray_NDIM(pZVals) != 1) || 
+            (PyArray_NDIM(pXGrid) != 2) || (PyArray_NDIM(pYGrid) != 2) )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Arrays should be 1d, 1d, 1d, 2d and 2d respectively");
+        return NULL;
+    }
     
     // Check dimensions match
     if( (PyArray_DIM(pXVals, 0) != PyArray_DIM(pYVals, 0)) | (PyArray_DIM(pXVals, 0) != PyArray_DIM(pZVals, 0)))
@@ -166,6 +174,14 @@ static PyObject *pynninterp_naturalneighbour_pts(PyObject *self, PyObject *args)
         PyErr_SetString(GETSTATE(self)->error, "All arguments must be numpy arrays");
         return NULL;
     }
+
+    // check dims
+    if( (PyArray_NDIM(pXVals) != 1) || (PyArray_NDIM(pYVals) != 1) || (PyArray_NDIM(pZVals) != 1) || 
+            (PyArray_NDIM(pXYGrid) != 2) )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Arrays should be 1d, 1d, 1d and 2d respectively");
+        return NULL;
+    }
     
     // Check dimensions match
     if( (PyArray_DIM(pXVals, 0) != PyArray_DIM(pYVals, 0)) | (PyArray_DIM(pXVals, 0) != PyArray_DIM(pZVals, 0)))
@@ -263,6 +279,14 @@ static PyObject *pynninterp_linear(PyObject *self, PyObject *args)
         return NULL;
     }
     
+    // check dims
+    if( (PyArray_NDIM(pXVals) != 1) || (PyArray_NDIM(pYVals) != 1) || (PyArray_NDIM(pZVals) != 1) || 
+            (PyArray_NDIM(pXGrid) != 2) || (PyArray_NDIM(pYGrid) != 2) )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Arrays should be 1d, 1d, 1d, 2d and 2d respectively");
+        return NULL;
+    }
+
     // Check dimensions match
     if( (PyArray_DIM(pXVals, 0) != PyArray_DIM(pYVals, 0)) | (PyArray_DIM(pXVals, 0) != PyArray_DIM(pZVals, 0)))
     {
@@ -368,6 +392,14 @@ static PyObject *pynninterp_linear_pts(PyObject *self, PyObject *args)
     if( !PyArray_Check(pXVals) || !PyArray_Check(pYVals) || !PyArray_Check(pZVals) || !PyArray_Check(pXYGrid) )
     {
         PyErr_SetString(GETSTATE(self)->error, "All arguments must be numpy arrays");
+        return NULL;
+    }
+
+    // check dims
+    if( (PyArray_NDIM(pXVals) != 1) || (PyArray_NDIM(pYVals) != 1) || (PyArray_NDIM(pZVals) != 1) || 
+            (PyArray_NDIM(pXYGrid) != 2) )
+    {
+        PyErr_SetString(GETSTATE(self)->error, "Arrays should be 1d, 1d, 1d and 2d respectively");
         return NULL;
     }
     

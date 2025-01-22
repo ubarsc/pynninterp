@@ -1,3 +1,5 @@
+**Note: this repo is no longer maintained. Development has moved to https://gitlab.com/jrsrp/sys/lidar/pynninterp**
+
 # PyNNInterp #
 
 This module wrap's Jonathan Shewchuk's "Triangle" code and makes it callable from Python. For more information see:
